@@ -1,5 +1,6 @@
-const debounce = require('debounce')
-const { Mixin } = require('mixwith-es5');
+var debounce = require('debounce')
+var { Mixin } = require('mixwith-es5');
+var defaults = require('defaults-es6/deep-merge');
 
 function isVisible(el) {
     return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
