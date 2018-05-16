@@ -1,0 +1,22 @@
+{
+  "name": "weddell-viewport-collision-component-mixin",
+  "version": "1.0.0",
+  "description": "Mixin for adding element viewport collision checking to Weddell components.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@webgit.2kgames.com:2k-web/weddell-viewport-collision-component-mixin.git"
+  },
+  "keywords": [
+    "weddell"
+  ],
+  "author": "Gryphon Myers",
+  "license": "MIT",
+  "dependencies": {
+    "debounce": "^1.1.0",
+    "mixwith-es5": "^0.1.3"
+  }
+}
