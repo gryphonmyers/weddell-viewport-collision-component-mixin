@@ -20,6 +20,6 @@
     "mixwith-es5": "^0.1.3"
   },
   "peerDependencies": {
-    "weddell": "^2.7.3"
+    "weddell": "^2.7.4"
   }
 }

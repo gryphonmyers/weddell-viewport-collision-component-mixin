@@ -6,20 +6,23 @@ function isVisible(el) {
     return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
 }
 
+function makeOffscreenObj() {
+    return {
+        topTop: true,
+        topBottom: true,
+        bottomTop: true,
+        bottomBottom: true,
+        leftLeft: true,
+        leftRight: true,
+        rightRight: true,
+        rightLeft: true
+    }
+}
 module.exports = Mixin(WeddellComponent => class extends WeddellComponent {
     constructor(opts) {
         super(defaults(opts, {
             state: {
-                offEdges: {
-                    topTop: true,
-                    topBottom: true,
-                    bottomTop: true,
-                    bottomBottom: true,
-                    leftLeft: true,
-                    leftRight: true,
-                    rightRight: true,
-                    rightLeft: true
-                },
+                offEdges: makeOffscreenObj(),
                 viewportVisibilityBuffer: 0,
                 //@TODO add adaptive buffer dependent on scroll delta
                 isFullyInViewport: function(){
@@ -36,29 +39,31 @@ module.exports = Mixin(WeddellComponent => class extends WeddellComponent {
         }))
     }
     
-    onDOMCreate() {
-        new Promise(resolve => {
-            var handle = setInterval(() => {
-                if (isVisible(this.el)) {
-                    clearInterval(handle);
-                    resolve();
-                }
-            }, 1000);
-        })
-        .then(() => {
-            this.addElementVisibilityListeners();
-        })
+    onDOMCreateOrChange() {
+        this.removeElementVisibilityListeners();
+        this.addElementVisibilityListeners();
+        this.checkViewportCollision();
     }
 
     onMount() {
-        if (this.el && !this.checkViewportCollision) {
-            this.addElementVisibilityListeners();
+        if (this.el) {
+            this.checkViewportCollision();
         }
     }
 
-    addElementVisibilityListeners() {
-        window.addEventListener('scroll', this.checkViewportCollision = evt => {
-            if (isVisible(this.el)) {
+    checkViewportCollision(evt) {
+        if (!this.currPromise) {
+            this.currPromise = (isVisible(this.el) ? Promise.resolve() : new Promise(resolve => {
+                this.state.offEdges = makeOffscreenObj();
+                var handle = setInterval(() => {
+                    if (isVisible(this.el)) {
+                        clearInterval(handle);
+                        resolve();
+                    }
+                }, 500);
+            }))
+            .then(() => {
+                delete this.currPromise;
                 var rect = this.el.getBoundingClientRect();
                 this.state.offEdges = {
                     topTop: rect.top < (0 - this.state.viewportVisibilityBuffer),
@@ -70,38 +75,26 @@ module.exports = Mixin(WeddellComponent => class extends WeddellComponent {
                     rightRight: rect.right < (0 - this.state.viewportVisibilityBuffer),
                     rightLeft: rect.right > (window.innerWidth + this.state.viewportVisibilityBuffer)
                 };
-            } else {
-                this.reset();
-            }      
-        });
-        window.addEventListener('resize', this.checkViewportCollisionDebounced = debounce(this.checkViewportCollision.bind(this), 300));
-        this.checkViewportCollision();
+            });
+        }        
+    }
+
+    addElementVisibilityListeners(el=this.el) {
+        window.addEventListener('scroll', this.viewportCollisionScrollCallback = this.checkViewportCollision.bind(this));
+        window.addEventListener('resize', this.viewportCollisionResizeCallback = debounce(this.checkViewportCollision.bind(this), 300));
     }
 
     removeElementVisibilityListeners() {
-        if (this.checkViewportCollision) {
-            window.removeEventListener('scroll', this.checkViewportCollision);
-            window.removeEventListener('resize', this.checkViewportCollisionDebounced);
-            delete this.checkViewportCollision;
-            delete this.checkViewportCollisionDebounced;
+        if (this.viewportCollisionScrollCallback) {
+            window.removeEventListener('scroll', this.viewportCollisionScrollCallback);
+            window.removeEventListener('resize', this.viewportCollisionResizeCallback);
+            delete this.viewportCollisionScrollCallback;
+            delete this.viewportCollisionResizeCallback;
         }   
-    }
-
-    reset() {
-        this.state.offEdges = {
-            topTop: true,
-            topBottom: true,
-            bottomTop: true,
-            bottomBottom: true,
-            leftLeft: true,
-            leftRight: true,
-            rightRight: true,
-            rightLeft: true
-        };
     }
 
     onUnmount() {
         this.removeElementVisibilityListeners();
-        this.reset();
+        this.state.offEdges = makeOffscreenObj();
     }
 })
