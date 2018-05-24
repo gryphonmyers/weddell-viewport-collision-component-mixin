@@ -17,6 +17,7 @@
   "license": "MIT",
   "dependencies": {
     "debounce": "^1.1.0",
+    "es6-event-delegator": "^1.0.1",
     "mixwith-es5": "^0.1.3"
   },
   "peerDependencies": {

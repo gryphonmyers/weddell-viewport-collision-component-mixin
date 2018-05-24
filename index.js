@@ -1,6 +1,7 @@
 var debounce = require('debounce')
 var { Mixin } = require('mixwith-es5');
 var defaults = require('defaults-es6/deep-merge');
+const EventDelegator = require('es6-event-delegator');
 
 function isVisible(el) {
     return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
@@ -18,6 +19,10 @@ function makeOffscreenObj() {
         rightLeft: true
     }
 }
+
+var scrollDelegator = new EventDelegator(window, 'scroll');
+var resizeDelegator = new EventDelegator(window, 'resize');
+
 module.exports = Mixin(WeddellComponent => class extends WeddellComponent {
     constructor(opts) {
         super(defaults(opts, {
@@ -51,6 +56,21 @@ module.exports = Mixin(WeddellComponent => class extends WeddellComponent {
         }
     }
 
+    addElementVisibilityListeners(el=this.el) {
+        scrollDelegator.addListener(this, this.checkViewportCollision.bind(this));
+        resizeDelegator.addListener(this, debounce(this.checkViewportCollision.bind(this), 300));
+    }
+
+    removeElementVisibilityListeners() {
+        scrollDelegator.removeListener(this);
+        resizeDelegator.removeListener(this);
+    }
+
+    onUnmount() {
+        this.removeElementVisibilityListeners();
+        this.state.offEdges = makeOffscreenObj();
+    }
+
     checkViewportCollision(evt) {
         if (!this.currPromise) {
             this.currPromise = (isVisible(this.el) ? Promise.resolve() : new Promise(resolve => {
@@ -76,25 +96,6 @@ module.exports = Mixin(WeddellComponent => class extends WeddellComponent {
                     rightLeft: rect.right > (window.innerWidth + this.state.viewportVisibilityBuffer)
                 };
             });
-        }        
-    }
-
-    addElementVisibilityListeners(el=this.el) {
-        window.addEventListener('scroll', this.viewportCollisionScrollCallback = this.checkViewportCollision.bind(this));
-        window.addEventListener('resize', this.viewportCollisionResizeCallback = debounce(this.checkViewportCollision.bind(this), 300));
-    }
-
-    removeElementVisibilityListeners() {
-        if (this.viewportCollisionScrollCallback) {
-            window.removeEventListener('scroll', this.viewportCollisionScrollCallback);
-            window.removeEventListener('resize', this.viewportCollisionResizeCallback);
-            delete this.viewportCollisionScrollCallback;
-            delete this.viewportCollisionResizeCallback;
-        }   
-    }
-
-    onUnmount() {
-        this.removeElementVisibilityListeners();
-        this.state.offEdges = makeOffscreenObj();
+        }  
     }
 })
