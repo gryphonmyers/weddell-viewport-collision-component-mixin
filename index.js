@@ -73,9 +73,12 @@ module.exports = Mixin(WeddellComponent => class extends WeddellComponent {
 
     checkViewportCollision(evt) {
         if (!this.currPromise) {
-            this.currPromise = (isVisible(this.el) ? Promise.resolve() : new Promise(resolve => {
+            this.currPromise = (isVisible(this.el) ? Promise.resolve() : new Promise((resolve, reject) => {
                 this.state.offEdges = makeOffscreenObj();
                 var handle = setInterval(() => {
+                    if (!this.el) {
+                        return reject();
+                    }
                     if (isVisible(this.el)) {
                         clearInterval(handle);
                         resolve();
@@ -95,6 +98,8 @@ module.exports = Mixin(WeddellComponent => class extends WeddellComponent {
                     rightRight: rect.right < (0 - this.state.viewportVisibilityBuffer),
                     rightLeft: rect.right > (window.innerWidth + this.state.viewportVisibilityBuffer)
                 };
+            }, () => {
+                delete this.currPromise;
             });
         }  
     }
