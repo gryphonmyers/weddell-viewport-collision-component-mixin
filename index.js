@@ -4,7 +4,7 @@ var defaults = require('defaults-es6/deep-merge');
 const EventDelegator = require('es6-event-delegator');
 
 function isVisible(el) {
-    return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+    return !!((el.offsetWidth || el.offsetHeight || el.getClientRects().length));
 }
 
 function makeOffscreenObj() {
@@ -72,7 +72,7 @@ module.exports = Mixin(WeddellComponent => class extends WeddellComponent {
     }
 
     checkViewportCollision(evt) {
-        if (!this.currPromise) {
+        if (!this.currPromise && this.el) {
             this.currPromise = (isVisible(this.el) ? Promise.resolve() : new Promise((resolve, reject) => {
                 this.state.offEdges = makeOffscreenObj();
                 var handle = setInterval(() => {
@@ -99,6 +99,7 @@ module.exports = Mixin(WeddellComponent => class extends WeddellComponent {
                     rightLeft: rect.right > (window.innerWidth + this.state.viewportVisibilityBuffer)
                 };
             }, () => {
+                this.removeElementVisibilityListeners();
                 delete this.currPromise;
             });
         }  
