@@ -1,5 +1,5 @@
-var debounce = require('debounce')
-var { Mixin } = require('mixwith-es5');
+var debounce = require('debounce');
+var { Mixin } = require('mixwith');
 var defaults = require('defaults-es6/deep-merge');
 const EventDelegator = require('es6-event-delegator');
 
