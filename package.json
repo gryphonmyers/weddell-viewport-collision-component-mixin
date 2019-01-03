@@ -1,6 +1,6 @@
 {
   "name": "weddell-viewport-collision-component-mixin",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Mixin for adding element viewport collision checking to Weddell components.",
   "main": "index.js",
   "scripts": {
