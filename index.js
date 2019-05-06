@@ -30,20 +30,20 @@ module.exports = Mixin(WeddellComponent => class extends WeddellComponent {
                 offEdges: makeOffscreenObj(),
                 viewportVisibilityBuffer: 0,
                 //@TODO add adaptive buffer dependent on scroll delta
-                isFullyInViewport: function(){
+                isFullyInViewport: function () {
                     return this.offEdges && Object.values(this.offEdges).every(val => !val);
                 },
-                isInViewport: function(){
-                    return this.offEdges && 
+                isInViewport: function () {
+                    return this.offEdges &&
                         !(this.offEdges.topBottom ||
-                        this.offEdges.leftRight ||
-                        this.offEdges.rightLeft ||
-                        this.offEdges.bottomTop);
+                            this.offEdges.leftRight ||
+                            this.offEdges.rightLeft ||
+                            this.offEdges.bottomTop);
                 }
             }
         }))
     }
-    
+
     onDOMCreateOrChange() {
         this.removeElementVisibilityListeners();
         this.addElementVisibilityListeners();
@@ -56,7 +56,7 @@ module.exports = Mixin(WeddellComponent => class extends WeddellComponent {
         }
     }
 
-    addElementVisibilityListeners(el=this.el) {
+    addElementVisibilityListeners(el = this.el) {
         scrollDelegator.addListener(this, this.checkViewportCollision.bind(this));
         resizeDelegator.addListener(this, debounce(this.checkViewportCollision.bind(this), 300));
     }
@@ -85,23 +85,23 @@ module.exports = Mixin(WeddellComponent => class extends WeddellComponent {
                     }
                 }, 500);
             }))
-            .then(() => {
-                delete this.currPromise;
-                var rect = this.el.getBoundingClientRect();
-                this.state.offEdges = {
-                    topTop: rect.top < (0 - this.state.viewportVisibilityBuffer),
-                    topBottom: rect.top > (window.innerHeight + this.state.viewportVisibilityBuffer),
-                    bottomTop: rect.bottom < (0 - this.state.viewportVisibilityBuffer),
-                    bottomBottom: rect.bottom > window.innerHeight,
-                    leftLeft: rect.left < (0 - this.state.viewportVisibilityBuffer),
-                    leftRight: rect.left > (window.innerWidth + this.state.viewportVisibilityBuffer),
-                    rightRight: rect.right < (0 - this.state.viewportVisibilityBuffer),
-                    rightLeft: rect.right > (window.innerWidth + this.state.viewportVisibilityBuffer)
-                };
-            }, () => {
-                this.removeElementVisibilityListeners();
-                delete this.currPromise;
-            });
-        }  
+                .then(() => {
+                    delete this.currPromise;
+                    var rect = this.el.getBoundingClientRect();
+                    this.state.offEdges = {
+                        topTop: rect.top < (0 - this.state.viewportVisibilityBuffer),
+                        topBottom: rect.top > (window.innerHeight + this.state.viewportVisibilityBuffer),
+                        bottomTop: rect.bottom < (0 - this.state.viewportVisibilityBuffer),
+                        bottomBottom: rect.bottom > window.innerHeight,
+                        leftLeft: rect.left < (0 - this.state.viewportVisibilityBuffer),
+                        leftRight: rect.left > (window.innerWidth + this.state.viewportVisibilityBuffer),
+                        rightLeft: rect.right < (0 - this.state.viewportVisibilityBuffer),
+                        rightRight: rect.right > (window.innerWidth + this.state.viewportVisibilityBuffer)
+                    };
+                }, () => {
+                    this.removeElementVisibilityListeners();
+                    delete this.currPromise;
+                });
+        }
     }
 })
